@@ -1,0 +1,19 @@
+# Package Managers
+PMPacman=0
+PMPortage=1
+PMNix=0
+PMGuix=0
+PMSnap=0
+PMFlatpak=1
+PMAppImages=0
+# Color Blocks
+ColorBlockSetForeground=1
+ColorBlockSetBackground=1
+CBCHR="####"            # Color Block Character
+UNC="Cdfg1"             # Username Color
+HNC="Cdfg1"             # Hostname Color
+LC="Cdfg5"              # Info Label Color
+IC="Cdfg2"              # Info Color
+SC="Cdfg7"              # Label:Info Separator Color
+BC="Cdfg5"              # Border Color
+RSC="32"                # Row Separator Length

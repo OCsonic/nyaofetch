@@ -1,0 +1,98 @@
+#!/bin/bash
+### Settings ###
+source /etc/nyaofetch/configuration
+### Fetching info that will be reused multiple times ###
+# Storing output of "lspci"
+export FetchPCIInfo="$(cat /tmp/lspci_cache/lspci_cache.tmp | grep "VGA compatible controller:")"
+export FetchBoltInfo="$(cat /tmp/lspci_cache/lspci_bolt.tmp | grep "VGA compatible controller:")"
+# Detect IGPU from lspci output based on CPU brand
+if [ "$(uname -p | grep "Intel")" ]; then
+	export FetchIGPU="$(echo -e "$FetchPCIInfo" | grep -o "Intel.*" | head -1 | tail -1)"
+	export FetchIGPUPCIID="$(echo -e "$FetchPCIInfo" | grep "Intel" | head -1 | tail -1 | grep -o "[0-9][0-9]:[0-9][0-9]\.[0-9]")"
+elif [ "$(uname -p | grep "AMD")" ]; then
+	export FetchIGPU="$(echo -e "$FetchPCIInfo" | grep -o "AMD.*" | head -1 | tail -1)"
+	export FetchIGPUPCIID="$(echo -e "$FetchPCIInfo" | grep "AMD" | head -1 | tail -1 | grep -o "[0-9][0-9]:[0-9][0-9]\.[0-9]")"
+fi
+# Storing current Memory and Swap values
+export FetchMemLine="$(free --mega | head -2 | tail -1)"
+export FetchSwapLine="$(free --mega | head -3 | tail -1)"
+# Saving variables for colors that are compatible with any ANSI compatible terminal
+export CF="\e[0m" && export BT="\e[1m"
+if [[ "$ColorBlockSetForeground" == "1" ]]; then
+	export Clfg0="\e[30m" && export Clfg1="\e[31m" && export Clfg2="\e[32m" && export Clfg3="\e[33m" && export Clfg4="\e[34m" && export Clfg5="\e[35m" && export Clfg6="\e[36m" && export Clfg7="\e[37m"
+	export Cdfg0="\e[90m" && export Cdfg1="\e[91m" && export Cdfg2="\e[92m" && export Cdfg3="\e[93m" && export Cdfg4="\e[94m" && export Cdfg5="\e[95m" && export Cdfg6="\e[96m" && export Cdfg7="\e[97m"
+fi
+if [[ "$ColorBlockSetBackground" == "1" ]]; then
+	export Clbg0="\e[40m" && export Clbg1="\e[41m" && export Clbg2="\e[42m" && export Clbg3="\e[43m" && export Clbg4="\e[44m" && export Clbg5="\e[45m" && export Clbg6="\e[46m" && export Clbg7="\e[47m"
+	export Cdbg0="\e[100m" && export Cdbg1="\e[101m" && export Cdbg2="\e[102m" && export Cdbg3="\e[103m" && export Cdbg4="\e[104m" && export Cdbg5="\e[105m" && export Cdbg6="\e[106m" && export Cdbg7="\e[107m"
+fi
+### Fetch Information ###
+# Colors
+export CBCHR
+export UNC="\\$(set | grep $UNC | grep -o "e\[.*m")"
+export HNC="\\$(set | grep $HNC | grep -o "e\[.*m")"
+export LC="\\$(set | grep $LC | grep -o "e\[.*m")"
+export IC="\\$(set | grep $IC | grep -o "e\[.*m")"
+export SC="\\$(set | grep $SC | grep -o "e\[.*m")"
+export BC="\\$(set | grep $BC | grep -o "e\[.*m")"
+export RSC
+# System Info
+export FetchUserAtHostname="$UNC $(whoami)$SC@$HNC$(hostname)$CF"
+export FetchOSArch="$LC OS$SC:$IC $(cat /etc/os-release | grep PRETTY_NAME | cut -d '"' -f 2) $(uname -m)$CF"
+export FetchKernel="$LC Kernel$SC:$IC $(uname -sr)$CF"
+export FetchUptime="$LC Uptime$SC:$IC $(uptime -p)$CF"
+# Terminal Environment
+export FetchShell="$LC Shell$SC:$IC $(basename $SHELL)$CF"
+export FetchTerm="$LC Terminal$SC:$IC $TERM$CF"
+# Processors
+export FetchProcessor="$LC CPU$SC:$IC $(uname -p)$CF"
+export FetchProcessorBogoMips="$IC$(cat /proc/cpuinfo | grep bogomips | head -1 | grep -o "[0-9]*\.[0-9]*")BogoMips$CF"
+while read -r line; do
+	export FetchDGPU+=("$LC dGPU$SC:$IC $(echo $line | cut -d' ' -f 5-)$CF")
+	export FetchDGPUPCIID+=("$LC ID$SC:$IC $(echo $line | grep -o "[0-9][0-9]:[0-9][0-9]\.[0-9]")$CF")
+done < <(echo "$FetchPCIInfo" | grep -v $FetchIGPUPCIID)
+if [[ $FetchBoltInfo != "" ]]; then
+	while read -r line; do
+		export FetchEGPU+=("$LC eGPU$SC:$IC $(echo $line | cut -d' ' -f 5-)$CF")
+		export FetchEGPUPCIID+=("$LC ID$SC:$IC $(echo $line | grep -o "[0-9][0-9]:[0-9][0-9]\.[0-9]")$CF")
+	done < <(echo "$FetchBoltInfo")
+fi
+export FetchIGPU="$LC iGPU$SC:$IC $FetchIGPU$CF"
+export FetchIGPUPCIID="$LC ID$SC:$IC $FetchIGPUPCIID$CF"
+# Memory
+export FetchMemory="$LC Memory$SC:$IC $(awk '{print $3}' <(echo $FetchMemLine))MB / $(awk '{print $2}' <(echo $FetchMemLine))MB$CF"
+export FetchSwap="$LC Swap$SC:$IC $(awk '{print $3}' <(echo $FetchSwapLine))MB / $(awk '{print $2}' <(echo $FetchSwapLine))MB$CF"
+# Package Manager 
+pkgcount() { echo "$#"; }
+if [[ $PMPacman == "1" ]]; then export FetchPackages_Pacman=" $(pacman -Q | wc -l) (${LC}Pacman$IC)"; fi
+if [[ $PMPortage == "1" ]]; then export FetchPackages_Portage=" $(pkgcount /var/db/pkg/*/*/) (${LC}Portage$IC)"; fi
+if [[ $PMNix == "1" ]]; then export FetchPackages_Nix=" $() (${LC}Nix$IC)"; fi
+## Nix
+# System
+#nix-store -q --requisites /run/current-system/sw
+# User
+#nix-store -q --requisites ~/.nix-profile
+# Default
+#nix-store -q --requisites /nix/var/nix/profiles/default
+if [[ $PMGuix == "1" ]]; then export FetchPackages_Guix=" $() (${LC}Guix$IC)"; fi
+## Guix
+# System
+#guix package -p "/run/current-system/profile" -I
+# User
+#guix package -I
+if [[ $PMSnap == "1" ]]; then export FetchPackages_Snap=" $(ps -e | grep -qFm 1 snapd >/dev/null && snap list | tail -n +2 | grep -v "WARNING:") (${LC}Snap$IC)"; fi
+if [[ $PMFlatpak == "1" ]]; then export FetchPackages_FlatpakSys=" $(flatpak list | grep system | wc -l) (${LC}Flatpak System$IC)" && FetchPackages_FlatpakUsr=" $(flatpak list | grep user | wc -l) (${LC}Flatpak User$IC)"; fi
+if [[ $PMAppImages == "1" ]]; then export FetchPackages_AppImages=" $(pkgcount ~/.local/bin/*.appimage) (${LC}AppImages$IC)"; fi
+# Package Count
+export FetchPackages="$LC Packages$SC:$IC$FetchPackages_Pacman$FetchPackages_Portage$FetchPackages_Nix$FetchPackages_Guix$FetchPackages_Snap$FetchPackages_FlatpakSys$FetchPackages_FlatpakUsr$FetchPackages_AppImages$CF"
+
+# Display Output
+readarray -t AsciiLn <<< "$(envsubst < /etc/nyaofetch/custom_ascii)"
+readarray -t Output < /etc/nyaofetch/output_format
+source /etc/nyaofetch/output_format
+### Experimental new output method to enable surrounding output with a character
+#while read -r line; do
+#	$line
+#done < <(echo -e ${Output[0]})
+#echo -e ${Output[11]}
+echo "" # An extra line before the user regains control
