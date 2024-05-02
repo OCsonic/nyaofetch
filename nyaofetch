@@ -45,12 +45,12 @@ Fetch_CPU() { printf "${LC}CPU$SC:$IC $(uname -p)$CF" ; }
 Fetch_CPUBogoMips() { printf "$IC$(cat /proc/cpuinfo | grep bogomips | head -1 | grep -o "[0-9]*\.[0-9]*")BogoMips$CF" ; }
 Fetch_GPU() {
 	TYPE=$1
-	case "$TYPE" in
-		Integrated) CurrentList="$(grep "VGA compatible controller:" /tmp/lspci_cache/lspci_cache.tmp | grep -E "(Intel|AMD)" | head -1 | tail -1)" ;;
-		Descrete) CurrentList="$(grep "VGA compatible controller:" /tmp/lspci_cache/lspci_cache.tmp | grep -v "$(Fetch_GPU Integrated id nocolor)")" ;;
-		Thunderbolt) CurrentList="$(grep "VGA compatible controller:" /tmp/lspci_cache/lspci_bolt.tmp)" ;;
-	esac
 	if [ ! "$(eval echo \${Fetch${TYPE}GPU[0]})" ]; then
+		case "$TYPE" in
+			Integrated) CurrentList="$(grep "VGA compatible controller:" /tmp/lspci_cache/lspci_cache.tmp | grep -E "(Intel|AMD)" | head -1 | tail -1)" ;;
+			Descrete) CurrentList="$(grep "VGA compatible controller:" /tmp/lspci_cache/lspci_cache.tmp | grep -v "$(Fetch_GPU Integrated id nocolor)")" ;;
+			Thunderbolt) CurrentList="$(grep "VGA compatible controller:" /tmp/lspci_cache/lspci_bolt.tmp)" ;;
+		esac
 		while read -r line; do
 			eval export Fetch${TYPE}GPU+=\("\"\$(echo \$line | cut -d\" \" -f 5-)\""\)
 			eval export Fetch${TYPE}GPUPCIID+=\("\"\$(echo \$line | grep -o "[0-9][0-9]:[0-9][0-9]\.[0-9]")\""\)
@@ -70,7 +70,6 @@ Fetch_GPU() {
 				id) eval echo -e "\${LC}ID\$SC: \$IC\${Fetch${TYPE}GPUPCIID[$num]}\$CF" ;;
 			esac
 		fi
-		
 	fi
 }
 Fetch_RAM() {
