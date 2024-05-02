@@ -1,19 +1,22 @@
-# Package Managers
-PMPacman=0
-PMPortage=1
-PMNix=0
-PMGuix=0
-PMSnap=0
-PMFlatpak=1
-PMAppImages=0
-# Color Blocks
+####################
+### Color Blocks ###
+####################
 ColorBlockSetForeground=1
 ColorBlockSetBackground=1
-CBCHR="####"            # Color Block Character
-UNC="Cdfg1"             # Username Color
-HNC="Cdfg1"             # Hostname Color
-LC="Cdfg5"              # Info Label Color
-IC="Cdfg2"              # Info Color
-SC="Cdfg7"              # Label:Info Separator Color
-BC="Cdfg5"              # Border Color
-RSC="32"                # Row Separator Length
+CBCHR="####"    # Color Block Character
+UNC="Cdfg1"     # Username Color
+HNC="Cdfg1"     # Hostname Color
+LC="Cdfg3"      # Info Label Color
+IC="Cdfg4"      # Info Color
+SC="Cdfg5"      # Label:Info Separator Color
+BC="Cdfg3"      # Border Color
+RSC="32"        # Row Separator Length
+
+############
+### Help ###
+############
+# How to use colors for formatting:
+#C         # Designates this is a color
+#(l|d)     # Light or Dark
+#(fg|bg)   # Foreground or Background
+#[0-7]     # Color Choice
