@@ -32,7 +32,13 @@ Fetch_OSArch() { printf "${LC}OS$SC:$IC $(cat /etc/os-release | grep PRETTY_NAME
 Fetch_Kernel() { printf "${LC}Kernel$SC:$IC $(uname -sr)$CF" ; }
 Fetch_Uptime() { printf "${LC}Uptime$SC:$IC $(uptime -p)$CF" ; }
 # Terminal Environment
-Fetch_Shell() { printf "${LC}Shell$SC:$IC $(basename $SHELL)$CF" ; }
+Fetch_Shell() { 
+	case "$1" in
+		nopath) FetchedSHELL="$(basename $SHELL)" ;;
+		path) FetchedSHELL="$SHELL" ;;
+	esac
+	printf "${LC}Shell$SC:$IC $FetchedSHELL$CF"
+}
 Fetch_Term() { printf "${LC}Terminal$SC:$IC $TERM$CF" ; }
 # Hardware
 Fetch_CPU() { printf "${LC}CPU$SC:$IC $(uname -p)$CF" ; }
@@ -69,11 +75,11 @@ Fetch_GPU() {
 }
 Fetch_RAM() {
 	FetchMemLine="$(free --mega | head -2 | tail -1)"
-	printf "${LC}RAM$SC: $IC$(echo "scale=3;$(awk '{print $3}' <(echo $FetchMemLine))/1024" | bc -l)GB/$(echo "scale=0;$(awk '{print $2}' <(echo $FetchMemLine))/1024" | bc -l)GB$CF"
+	printf "${LC}RAM$SC: $IC$(echo "scale=$1;$(awk '{print $3}' <(echo $FetchMemLine))/1024" | bc -l)GB/$(echo "scale=$2;$(awk '{print $2}' <(echo $FetchMemLine))/1024" | bc -l)GB$CF"
 }
 Fetch_Swap() {
 	FetchSwapLine="$(free --mega | head -3 | tail -1)"
-	printf "${LC}Swap$SC: $IC$(echo "scale=3;$(awk '{print $3}' <(echo $FetchSwapLine))/1024" | bc -l)GB/$(echo "scale=0;$(awk '{print $2}' <(echo $FetchSwapLine))/1024" | bc -l)GB$CF"
+	printf "${LC}Swap$SC: $IC$(echo "scale=$1;$(awk '{print $3}' <(echo $FetchSwapLine))/1024" | bc -l)GB/$(echo "scale=$2;$(awk '{print $2}' <(echo $FetchSwapLine))/1024" | bc -l)GB$CF"
 }
 
 
