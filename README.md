@@ -1,6 +1,6 @@
 # Nyaofetch
 ## What is this?
-Nyaofetch is a tool meant to replace as much Neofetch functionality as possible while maintaining faster speeds
+Nyaofetch is a tool meant to replace and expand on as much Neofetch functionality as possible while maintaining faster speeds all while still using of bash.
 
 Currently I advice against using it because it's undergoing some major refactoring to improve functionality and speed.
 
